@@ -1,0 +1,19 @@
+services:
+  # Servicio Web (API + Frontend)
+  - type: web
+    name: dashboard-renta-variable
+    env: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: TIMEZONE
+        value: America/Caracas
+      - key: PORT
+        value: 8000
+      - key: HOST
+        value: 0.0.0.0

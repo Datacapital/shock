@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Dashboard Renta Variable 2025 - PER CAPITAL</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .positive {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .negative {
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .select-accion {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #0d47a1;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto max-w-7xl">
+        <!-- Header -->
+        <div class="header-gradient">
+            <h1 class="text-4xl font-bold mb-2">📊 REPORTE DE RENTA VARIABLE 2025</h1>
+            <p class="text-xl opacity-90">PER CAPITAL - Dashboard en Tiempo Real</p>
+            <p class="text-sm opacity-75 mt-2" id="ultimaActualizacion">Cargando...</p>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <div class="stat-label">Total Acciones</div>
+                <div class="stat-value" id="totalAcciones">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cap. Total Oficial</div>
+                <div class="stat-value" id="capOficial">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cap. Total Paralelo</div>
+                <div class="stat-value" id="capParalelo">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Última Actualización</div>
+                <div class="stat-value text-2xl" id="fechaActual">-</div>
+            </div>
+        </div>
+        
+        <!-- Selector de Acción -->
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-4">📈 Análisis de Acción</h2>
+            <select id="selectorAccion" class="select-accion">
+                <option value="">Selecciona una acción...</option>
+            </select>
+            <div id="detalleAccion" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Precio Actual</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-gray-600">Dólar Oficial</p>
+                                <p class="text-2xl font-bold text-blue-600" id="precioOficial">-</p>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <p class="text-sm text-gray-600">Dólar Paralelo</p>
+                                <p class="text-2xl font-bold text-green-600" id="precioParalelo">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Capitalización</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <p class="text-sm text-gray-600">Oficial</p>
+                                <p class="text-lg font-bold text-purple-600" id="capOficialDetalle">-</p>
+                            </div>
+                            <div class="p-4 bg-pink-50 rounded-lg">
+                                <p class="text-sm text-gray-600">Paralelo</p>
+                                <p class="text-lg font-bold text-pink-600" id="capParaleloDetalle">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de Evolución -->
+                <div class="mt-6">
+                    <h3 class="text-xl font-bold mb-4">Evolución de Precios (30 días)</h3>
+                    <canvas id="chartEvolucion" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabla de Acciones -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">💼 Todas las Acciones</h2>
+                <button onclick="actualizarDatos()" class="btn">
+                    🔄 Actualizar
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="tablaAcciones">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Precio Oficial</th>
+                            <th>Precio Paralelo</th>
+                            <th>Cap. Oficial</th>
+                            <th>Cap. Paralelo</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        <tr>
+                            <td colspan="7" class="text-center">Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Tasas de Cambio -->
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-4">💱 Tasas de Cambio (Tiempo Real)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-6 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg text-white">
+                    <p class="text-sm opacity-90">Dólar Oficial (BCV)</p>
+                    <p class="text-4xl font-bold" id="tasaOficial">-</p>
+                    <p class="text-xs opacity-75 mt-2">Bs/USD</p>
+                </div>
+                <div class="p-6 bg-gradient-to-br from-green-500 to-green-700 rounded-lg text-white">
+                    <p class="text-sm opacity-90">Dólar Paralelo (Binance P2P)</p>
+                    <p class="text-4xl font-bold" id="tasaParalelo">-</p>
+                    <p class="text-xs opacity-75 mt-2">Bs/USD</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-4 text-center">
+                <span id="timestamp">Actualizado: -</span>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let chartInstance = null;
+        
+        // Formatear números
+        function formatMoney(value) {
+            if (!value) return '-';
+            return '$' + parseFloat(value).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function formatMoneyCompact(value) {
+            if (!value) return '-';
+            const num = parseFloat(value);
+            if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + 'K';
+            return '$' + num.toFixed(2);
+        }
+        
+        // Cargar resumen del mercado
+        async function cargarResumen() {
+            try {
+                const response = await fetch(`${API_BASE}/api/resumen`);
+                const data = await response.json();
+                
+                document.getElementById('totalAcciones').textContent = data.total_acciones || 0;
+                document.getElementById('capOficial').textContent = formatMoneyCompact(data.capitalizacion_total_oficial);
+                document.getElementById('capParalelo').textContent = formatMoneyCompact(data.capitalizacion_total_paralelo);
+                document.getElementById('fechaActual').textContent = data.fecha_actualizacion || '-';
+                
+                // Llenar selector de acciones
+                const selector = document.getElementById('selectorAccion');
+                selector.innerHTML = '<option value="">Selecciona una acción...</option>';
+                
+                data.acciones_detalle.forEach(accion => {
+                    const option = document.createElement('option');
+                    option.value = accion.codigo;
+                    option.textContent = `${accion.codigo} - ${accion.nombre}`;
+                    selector.appendChild(option);
+                });
+                
+                // Llenar tabla
+                const tbody = document.getElementById('tablaBody');
+                tbody.innerHTML = '';
+                
+                data.acciones_detalle.forEach(accion => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="font-bold">${accion.codigo}</td>
+                        <td>${accion.nombre || '-'}</td>
+                        <td>${formatMoney(accion.precio_oficial)}</td>
+                        <td>${formatMoney(accion.precio_paralelo)}</td>
+                        <td>${formatMoneyCompact(accion.capitalizacion_oficial)}</td>
+                        <td>${formatMoneyCompact(accion.capitalizacion_paralelo)}</td>
+                        <td>${accion.fecha || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error al cargar resumen:', error);
+            }
+        }
+        
+        // Cargar detalle de acción
+        async function cargarDetalleAccion(codigo) {
+            if (!codigo) {
+                document.getElementById('detalleAccion').classList.add('hidden');
+                return;
+            }
+            
+            try {
+                // Cargar resumen de la acción
+                const resumenResponse = await fetch(`${API_BASE}/api/resumen/${codigo}`);
+                const resumen = await resumenResponse.json();
+                
+                document.getElementById('precioOficial').textContent = formatMoney(resumen.precio_actual_oficial);
+                document.getElementById('precioParalelo').textContent = formatMoney(resumen.precio_actual_paralelo);
+                document.getElementById('capOficialDetalle').textContent = formatMoneyCompact(resumen.capitalizacion_oficial);
+                document.getElementById('capParaleloDetalle').textContent = formatMoneyCompact(resumen.capitalizacion_paralelo);
+                
+                // Cargar histórico para el gráfico
+                const historicoResponse = await fetch(`${API_BASE}/api/precios/bvc/${codigo}/historico?dias=30`);
+                const historicoData = await historicoResponse.json();
+                
+                // Preparar datos para el gráfico
+                const fechas = historicoData.precios.map(p => p.fecha).reverse();
+                const preciosOficiales = historicoData.precios.map(p => p.precio_cierre_usd_oficial).reverse();
+                const preciosParalelos = historicoData.precios.map(p => p.precio_cierre_usd_paralelo).reverse();
+                
+                // Actualizar gráfico
+                actualizarGrafico(fechas, preciosOficiales, preciosParalelos);
+                
+                document.getElementById('detalleAccion').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al cargar detalle:', error);
+            }
+        }
+        
+        // Actualizar gráfico
+        function actualizarGrafico(fechas, preciosOficiales, preciosParalelos) {
+            const ctx = document.getElementById('chartEvolucion').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: fechas,
+                    datasets: [
+                        {
+                            label: 'Dólar Oficial',
+                            data: preciosOficiales,
+                            borderColor: '#0d47a1',
+                            backgroundColor: 'rgba(13, 71, 161, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Dólar Paralelo',
+                            data: preciosParalelos,
+                            borderColor: '#00897b',
+                            backgroundColor: 'rgba(0, 137, 123, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Cargar tasas de cambio actuales
+        async function cargarTasas() {
+            try {
+                const response = await fetch(`${API_BASE}/api/tasas/actual`);
+                const data = await response.json();
+                
+                if (data.tasa_oficial) {
+                    document.getElementById('tasaOficial').textContent = data.tasa_oficial.toFixed(2);
+                }
+                
+                if (data.tasa_paralelo) {
+                    document.getElementById('tasaParalelo').textContent = data.tasa_paralelo.toFixed(2);
+                }
+                
+                if (data.timestamp) {
+                    const fecha = new Date(data.timestamp);
+                    document.getElementById('timestamp').textContent = 
+                        `Actualizado: ${fecha.toLocaleString('es-ES')}`;
+                }
+            } catch (error) {
+                console.error('Error al cargar tasas:', error);
+                document.getElementById('tasaOficial').textContent = 'Error';
+                document.getElementById('tasaParalelo').textContent = 'Error';
+            }
+        }
+        
+        // Cargar última actualización
+        async function cargarUltimaActualizacion() {
+            try {
+                const response = await fetch(`${API_BASE}/api/ultima-actualizacion`);
+                const data = await response.json();
+                
+                const fecha = data.ultima_actualizacion_bvc || data.ultima_actualizacion_binance;
+                if (fecha) {
+                    const fechaObj = new Date(fecha);
+                    document.getElementById('ultimaActualizacion').textContent = 
+                        `Última actualización: ${fechaObj.toLocaleString('es-ES')}`;
+                }
+            } catch (error) {
+                console.error('Error al cargar última actualización:', error);
+            }
+        }
+        
+        // Actualizar todos los datos
+        async function actualizarDatos() {
+            await cargarResumen();
+            await cargarTasas();
+            await cargarUltimaActualizacion();
+            
+            const accionSeleccionada = document.getElementById('selectorAccion').value;
+            if (accionSeleccionada) {
+                await cargarDetalleAccion(accionSeleccionada);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('selectorAccion').addEventListener('change', (e) => {
+            cargarDetalleAccion(e.target.value);
+        });
+        
+        // Cargar datos al inicio
+        window.addEventListener('load', () => {
+            actualizarDatos();
+            // Actualizar cada 5 minutos
+            setInterval(actualizarDatos, 5 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>
