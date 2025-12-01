@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     """Configuración de la aplicación"""
     
     # Supabase (OBLIGATORIO)
-    supabase_url: str
-    supabase_key: str
+    SUPABASE_URL: str
+    SUPABASE_URL: str
     
     # Configuración general
     timezone: str = "America/Caracas"
