@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     """Configuración de la aplicación"""
     
     # Supabase (OBLIGATORIO)
-    SUPABASE_URL: str
-    SUPABASE_URL: str
+    supabase_url: str
+    supabase_key: str
     
     # Configuración general
     timezone: str = "America/Caracas"
@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        fields = {
+            "supabase_url": {"env": "SUPABASE_URL"},
+            "supabase_key": {"env": "SUPABASE_KEY"},
+        }
 
 
 settings = Settings()
