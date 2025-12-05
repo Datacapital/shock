@@ -248,4 +248,4 @@ Este proyecto es de uso interno. Todos los derechos reservados.
 
 ---
 
-Creado por PER CAPITAL 2025 🚀
+
