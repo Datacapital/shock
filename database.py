@@ -13,8 +13,8 @@ class Database:
     
     def __init__(self):
         self.client: Client = create_client(
-            settings.supabase_url,
-            settings.supabase_key
+            settings.SUPABASE_URL,
+            settings.SUPABASE_KEY
         )
     
     # ==================== ACCIONES ====================
