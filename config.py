@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     
     # Supabase (OBLIGATORIO)
     SUPABASE_URL: str
-    SUPABASE_URL: str
+    SUPABASE_KEY: str
     
     # Configuración general
     timezone: str = "America/Caracas"
