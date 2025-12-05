@@ -1,12 +1,13 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Configuración de la aplicación"""
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
     
     # Supabase (OBLIGATORIO)
-    SUPABASE_URL: str
-    SUPABASE_URL: str
+    supabase_url: str
+    supabase_key: str
     
     # Configuración general
     timezone: str = "America/Caracas"
@@ -15,14 +16,6 @@ class Settings(BaseSettings):
     
     # Horarios de actualización
     hora_actualizacion_bvc: str = "17:00"
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        fields = {
-            "supabase_url": {"env": "SUPABASE_URL"},
-            "supabase_key": {"env": "SUPABASE_KEY"},
-        }
 
 
 settings = Settings()
